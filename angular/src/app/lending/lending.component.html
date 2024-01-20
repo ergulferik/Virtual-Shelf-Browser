@@ -1,0 +1,114 @@
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col col-md-6">
+                <h5 class="card-title">
+                    {{ '::Menu:Lending' | abpLocalization}}
+                </h5>
+            </div>
+            <div class="text-end col col-md-6">
+                <div class="text-lg-end pt-2">
+                    <button *abpPermission="'VirtualShelfBrowser.Lendings.Create'" id="create" class="btn btn-primary" type="button" (click)="createLending()">
+                        <i class="fa fa-plus me-1"></i>
+                        <span>{{'::NewLending' | abpLocalization}}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <ngx-datatable [rows]="lending.items" [count]="lending.totalCount" [list]="list" default>
+            <ngx-datatable-column *abpPermission="'VirtualShelfBrowser.Lendings.Edit' && 'VirtualShelfBrowser.Lendings.Delete'" [name]="'::Actions' | abpLocalization" [maxWidth]="150" [sortable]="false">
+                <ng-template let-row="row" ngx-datatable-cell-template>
+                    <div *ngIf="!row.isDelivered" ngbDropdown container="body" class="d-inline-block">
+                        <button class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown"
+                            aria-haspopup="true" ngbDropdownToggle>
+                            <i class="fa fa-cog me-1"></i>{{ '::Actions' | abpLocalization }}
+                        </button>
+                        <div ngbDropdownMenu>
+                            <button  *abpPermission="'VirtualShelfBrowser.Lendings.Edit'" ngbDropdownItem (click)="editLending(row.id)">
+                                {{ '::Edit' | abpLocalization }}
+                            </button>
+                            <button *abpPermission="'VirtualShelfBrowser.Lendings.Delete'" ngbDropdownItem (click)="delete(row.id)">
+                                {{ '::Delete' | abpLocalization }}
+                            </button>
+                        </div>
+                    </div>
+                </ng-template>
+            </ngx-datatable-column>
+
+            <ngx-datatable-column *ngIf="userBool" [name]="'::UserName' | abpLocalization" prop="userName"
+                [sortable]="false"></ngx-datatable-column>
+            <ngx-datatable-column [name]="'::LenderName' | abpLocalization" prop="lenderName"
+                [sortable]="false"></ngx-datatable-column>
+            <ngx-datatable-column [name]="'::BookName' | abpLocalization" prop="bookName"
+                [sortable]="false"></ngx-datatable-column>
+            <ngx-datatable-column [sortable]="false" [name]="'::StartDate' | abpLocalization" prop="startDate">
+                <ng-template let-row="row" ngx-datatable-cell-template>
+                    {{ row.startDate | date }}
+                </ng-template>
+            </ngx-datatable-column>
+            <ngx-datatable-column [sortable]="false" [name]="'::EndDate' | abpLocalization" prop="endDate">
+                <ng-template let-row="row" ngx-datatable-cell-template>
+                    {{ row.endDate | date }}
+                </ng-template>
+            </ngx-datatable-column>
+            <ngx-datatable-column [sortable]="false" [name]="'::IsDelivered' | abpLocalization" prop="isDelivered">
+                <ng-template let-row="row" ngx-datatable-cell-template>
+                    <button *ngIf="row.isDelivered" disabled class="btn btn-success">{{ '::Delivered' | abpLocalization}}</button>
+                    <button *ngIf="!row.isDelivered" (click)="isDeliveredFunc(row.id)" class="btn btn-warning">{{ '::NotDelivered' | abpLocalization}}</button>
+                </ng-template>
+            </ngx-datatable-column>
+        </ngx-datatable>
+    </div>
+</div>
+
+<abp-modal [(visible)]="isModalOpen">
+    <ng-template #abpHeader>
+        <h3>{{(selectedLending.id ? '::Edit' : '::NewLending') | abpLocalization}}</h3>
+    </ng-template>
+
+    <ng-template #abpBody>
+        <form [formGroup]="form" (ngSubmit)="save()">
+            <div class="mt-2">
+                <label for="user-id">{{ '::User' | abpLocalization}}</label><span>*</span>
+                <select class="form-control" id="user-id" formControlName="userName">
+                    <option [ngValue]="null">{{ '::SelectUser' | abpLocalization}}</option>
+                    <option [ngValue]="user.name" *ngFor="let user of users$ | async">
+                        {{user.name }}
+                    </option>
+                </select>
+            </div>
+            <div class="mt-2">
+                <label for="book-id">{{ '::Book' | abpLocalization}}</label><span>*</span>
+                <select class="form-control" id="book-id" formControlName="bookId">
+                    <option [ngValue]="null">{{ '::SelectBook' | abpLocalization}}</option>
+                    <option [ngValue]="book.id" *ngFor="let book of books$ | async">
+                        {{book.name}}
+                    </option>
+                </select>
+            </div>
+            <div class="mt-2">
+                <label>{{ '::StartDate' | abpLocalization}}</label><span> * </span>
+                <input #datepicker="ngbDatepicker" class="form-control" name="datepicker" formControlName="startDate"
+                  ngbDatepicker (click)="datepicker.toggle()" />
+            </div>
+            <div class="mt-2">
+                <label>{{ '::EndDate' | abpLocalization}}</label><span> * </span>
+                <input #datepicker1="ngbDatepicker" class="form-control" name="datepicker1" formControlName="endDate"
+                  ngbDatepicker (click)="datepicker1.toggle()" />
+            </div>
+        </form>
+    </ng-template>
+
+    <ng-template #abpFooter>
+        <button type="button" class="btn btn-secondary" abpClose>
+            {{ '::Close' | abpLocalization}}
+        </button>
+        <button class="btn btn-primary" (click)="save()" [disabled]="form.invalid">
+            <i class="fa fa-check mr-1"></i>
+            {{'::Save' | abpLocalization}}
+        </button>
+    </ng-template>
+</abp-modal>
